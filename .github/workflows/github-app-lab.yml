@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Generate GitHub App token
-        id: app-token
+        id: app-token1
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.LAB_APP_ID }}
@@ -20,19 +20,27 @@ jobs:
 
       - name: Verify token can read this repo
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token1.outputs.token }}
         run: |
           gh api /repos/${{ github.repository }} --jq '.full_name'
 
       - name: Verify token can list issues
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token1.outputs.token }}
         run: |
           gh api /repos/${{ github.repository }}/issues --method GET --jq '.[0].number // "ok-no-issues-yet"'
 
+      # generating again GitHub App token in case previous Job takes more than 1 hour:
+      - name: Generate GitHub App token
+        id: app-token2
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.LAB_APP_ID }}
+          private-key: ${{ secrets.LAB_APP_PRIVATE_KEY }}
+
       - name: Create issue as GitHub App
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token2.outputs.token }}
         run: |
           gh issue create \
             --repo "${{ github.repository }}" \
