@@ -18,11 +18,11 @@ jobs:
           app-id: ${{ vars.LAB_APP_ID }}
           private-key: ${{ secrets.LAB_APP_PRIVATE_KEY }}
 
-      - name: Show who the token belongs to
+      - name: Test the token with a normal API call
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          gh api /repos/${{ github.repository }}/installation
+          gh api /repos/${{ github.repository }}
 
       - name: Create issue as GitHub App
         env:
