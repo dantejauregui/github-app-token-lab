@@ -1,0 +1,34 @@
+name: GitHub App Token Lab
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  create-issue-as-app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.LAB_APP_ID }}
+          private-key: ${{ secrets.LAB_APP_PRIVATE_KEY }}
+
+      - name: Show who the token belongs to
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh api /repos/${{ github.repository }}/installation
+
+      - name: Create issue as GitHub App
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "GitHub App test issue" \
+            --body "This issue was created by a GitHub App installation token from GitHub Actions."
