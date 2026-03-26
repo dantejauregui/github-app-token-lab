@@ -18,11 +18,17 @@ jobs:
           app-id: ${{ vars.LAB_APP_ID }}
           private-key: ${{ secrets.LAB_APP_PRIVATE_KEY }}
 
-      - name: Test the token with a normal API call
+      - name: Verify token can read this repo
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          gh api /repos/${{ github.repository }}
+          gh api /repos/${{ github.repository }} --jq '.full_name'
+
+      - name: Verify token can list issues
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh api /repos/${{ github.repository }}/issues --method GET --jq '.[0].number // "ok-no-issues-yet"'
 
       - name: Create issue as GitHub App
         env:
