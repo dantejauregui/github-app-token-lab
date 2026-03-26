@@ -1,0 +1,44 @@
+name: GitHub App Push Lab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  push-as-app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.LAB_APP_ID }}
+          private-key: ${{ secrets.LAB_APP_PRIVATE_KEY }}
+
+      - name: Checkout repository as GitHub App
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
+
+      - name: Show current branch
+        run: |
+          echo "Branch: ${GITHUB_REF_NAME}"
+
+      - name: Update test file
+        run: |
+          echo "Updated by GitHub App at $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> app-test-log.txt
+
+      - name: Configure git identity
+        run: |
+          git config user.name "dante-token-lab-app[bot]"
+          git config user.email "dante-token-lab-app[bot]@users.noreply.github.com"
+
+      - name: Commit changes
+        run: |
+          git add app-test-log.txt
+          git commit -m "Test commit using GitHub App" || echo "No changes to commit"
+
+      - name: Push changes
+        run: |
+          git push origin HEAD:${GITHUB_REF_NAME}
